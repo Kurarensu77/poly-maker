@@ -149,6 +149,12 @@ def update_markets():
     received_df, received_params = get_sheet_df()
 
     if len(received_df) > 0:
+        # Ensure multiplier column exists and fill NaN values with empty string
+        if 'multiplier' not in received_df.columns:
+            received_df['multiplier'] = ''
+        else:
+            received_df['multiplier'] = received_df['multiplier'].fillna('')
+            
         global_state.df, global_state.params = received_df.copy(), received_params
     
 

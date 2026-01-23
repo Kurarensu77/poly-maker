@@ -18,9 +18,12 @@ def process_book_data(asset, json_data):
     global_state.all_data[asset]['bids'].update({float(entry['price']): float(entry['size']) for entry in json_data['bids']})
     global_state.all_data[asset]['asks'].update({float(entry['price']): float(entry['size']) for entry in json_data['asks']})
 
-def process_price_change(asset, side, price_level, new_size):
-    if asset_id != global_state.all_data[asset]['asset_id']:
-        return  # skip updates for the No token to prevent duplicated updates
+def process_price_change(asset, side, price_level, new_size, asset_id=None):
+    # Skip updates for the No token to prevent duplicated updates
+    # Only process if asset_id matches the stored asset_id for this market
+    if asset_id and asset in global_state.all_data and asset_id != global_state.all_data[asset]['asset_id']:
+        return
+    
     if side == 'bids':
         book = global_state.all_data[asset]['bids']
     else:
@@ -33,7 +36,10 @@ def process_price_change(asset, side, price_level, new_size):
         book[price_level] = new_size
 
 def process_data(json_datas, trade=True):
-
+    # Ensure input is always a list
+    if isinstance(json_datas, dict):
+        json_datas = [json_datas]
+    
     for json_data in json_datas:
         event_type = json_data['event_type']
         asset = json_data['market']
@@ -49,7 +55,9 @@ def process_data(json_datas, trade=True):
                 side = 'bids' if data['side'] == 'BUY' else 'asks'
                 price_level = float(data['price'])
                 new_size = float(data['size'])
-                process_price_change(asset, side, price_level, new_size)
+                # Pass asset_id if available in the data
+                asset_id = data.get('asset_id', None)
+                process_price_change(asset, side, price_level, new_size, asset_id)
 
                 if trade:
                     asyncio.create_task(perform_trade(asset))
