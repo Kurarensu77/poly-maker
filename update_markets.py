@@ -1,38 +1,22 @@
 import time
 import pandas as pd
-from data_updater.trading_utils import get_clob_client
-from data_updater.google_utils import get_spreadsheet
-from data_updater.find_markets import get_sel_df, get_all_markets, get_all_results, get_markets, add_volatility_to_df
-from gspread_dataframe import set_with_dataframe
+import json
+import os
+from src.updater.updater_utils import get_clob_client
+from src.updater.find_markets import get_all_markets, get_all_results, get_markets, add_volatility_to_df
+from src.utils.utils import load_json, save_to_json
 import traceback
 
-# Initialize global variables
-spreadsheet = get_spreadsheet()
+# Initialize client
 client = get_clob_client()
 
-wk_all = spreadsheet.worksheet("All Markets")
-wk_vol = spreadsheet.worksheet("Volatility Markets")
 
-sel_df = get_sel_df(spreadsheet, "Selected Markets")
-
-def update_sheet(data, worksheet):
-    all_values = worksheet.get_all_values()
-    existing_num_rows = len(all_values)
-    existing_num_cols = len(all_values[0]) if all_values else 0
-
-    num_rows, num_cols = data.shape
-    max_rows = max(num_rows, existing_num_rows)
-    max_cols = max(num_cols, existing_num_cols)
-
-    # Create a DataFrame with the maximum size and fill it with empty strings
-    padded_data = pd.DataFrame('', index=range(max_rows), columns=range(max_cols))
-
-    # Update the padded DataFrame with the original data and its columns
-    padded_data.iloc[:num_rows, :num_cols] = data.values
-    padded_data.columns = list(data.columns) + [''] * (max_cols - num_cols)
-
-    # Update the sheet with the padded DataFrame, including column headers
-    set_with_dataframe(worksheet, padded_data, include_index=False, include_column_header=True, resize=True)
+def load_selected_markets():
+    """Load selected markets from config/markets.json"""
+    data = load_json('markets.json')
+    if isinstance(data, dict) and 'markets' in data:
+        return pd.DataFrame(data.get('markets', []))
+    return pd.DataFrame(data) if data else pd.DataFrame()
 
 def sort_df(df):
     # Calculate the mean and standard deviation for each column
@@ -75,17 +59,10 @@ def sort_df(df):
     return sorted_df
 
 def fetch_and_process_data():
-    global spreadsheet, client, wk_all, wk_vol, sel_df
+    global client
     
-    spreadsheet = get_spreadsheet()
     client = get_clob_client()
-
-    wk_all = spreadsheet.worksheet("All Markets")
-    wk_vol = spreadsheet.worksheet("Volatility Markets")
-    wk_full = spreadsheet.worksheet("Full Markets")
-
-    sel_df = get_sel_df(spreadsheet, "Selected Markets")
-
+    sel_df = load_selected_markets()
 
     all_df = get_all_markets(client)
     print("Got all Markets")
@@ -105,10 +82,15 @@ def fetch_and_process_data():
                      'best_bid', 'best_ask', 'volatility_price', 'max_spread', 'tick_size',  
                      'neg_risk',  'market_slug', 'token1', 'token2', 'condition_id']]
 
+    # Add default trading parameters so markets can be copied directly to markets.json
+    new_df['trade_size'] = 25
+    new_df['max_size'] = 100
+    new_df['param_type'] = 'default'
+    new_df['multiplier'] = ''
+
     
     volatility_df = new_df.copy()
     volatility_df = volatility_df[new_df['volatility_sum'] < 20]
-    # volatility_df = sort_df(volatility_df)
     volatility_df = volatility_df.sort_values('gm_reward_per_100', ascending=False)
    
     new_df = new_df.sort_values('gm_reward_per_100', ascending=False)
@@ -117,11 +99,12 @@ def fetch_and_process_data():
     print(f'{pd.to_datetime("now")}: Fetched select market of length {len(new_df)}.')
 
     if len(new_df) > 50:
-        update_sheet(new_df, wk_all)
-        update_sheet(volatility_df, wk_vol)
-        update_sheet(m_data, wk_full)
+        # Save to JSON files instead of Google Sheets
+        save_to_json(new_df, 'all_markets.json')
+        save_to_json(volatility_df, 'volatility_markets.json')
+        save_to_json(m_data, 'full_markets.json')
     else:
-        print(f'{pd.to_datetime("now")}: Not updating sheet because of length {len(new_df)}.')
+        print(f'{pd.to_datetime("now")}: Not saving because of length {len(new_df)}.')
 
 if __name__ == "__main__":
     while True:

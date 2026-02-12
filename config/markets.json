@@ -1,0 +1,39 @@
+  {
+  "markets": [
+    {
+    "question": "Will Mamdani freeze NYC rents before 2027?",
+    "answer1": "Yes",
+    "answer2": "No",
+    "spread": 0.010000000000000009,
+    "rewards_daily_rate": 5.0,
+    "gm_reward_per_100": 0.94,
+    "sm_reward_per_100": 0.97,
+    "bid_reward_per_100": 0.72,
+    "ask_reward_per_100": 1.22,
+    "volatility_sum": 37.849999999999994,
+    "volatilty/reward": "0.02",
+    "min_size": 100,
+    "1_hour": 0.0,
+    "3_hour": 0.0,
+    "6_hour": 8.5,
+    "12_hour": 15.19,
+    "24_hour": 15.04,
+    "7_day": 10.9,
+    "30_day": 9.77,
+    "best_bid": 0.41,
+    "best_ask": 0.42,
+    "volatility_price": 0.42,
+    "max_spread": 4.5,
+    "tick_size": 0.01,
+    "neg_risk": false,
+    "market_slug": "will-mamdani-freeze-nyc-rents-before-2027",
+    "token1": "106102449360267073046637097096598048592436928340059823162151571020807191828087",
+    "token2": "86934023414665345422427506679433864279296027898426531732170959339104415335162",
+    "condition_id": "0x921330240e4d92f8535d54bcb34b31750fc235761f97b064d92e54a48c2f9dca",
+    "trade_size": 25,
+    "max_size": 100,
+    "param_type": "default",
+    "multiplier": ""
+  }
+  ]
+}

@@ -1,5 +1,5 @@
-from poly_data.polymarket_client import PolymarketClient
-from poly_stats.account_stats import update_stats_once
+from src.core.polymarket_client import PolymarketClient
+from src.stats.account_stats import update_stats_once
 
 import pandas as pd
 import time

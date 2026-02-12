@@ -109,40 +109,38 @@ Edit the `.env` file with your credentials:
 
 **Important:** Make sure your wallet has done at least one trade through the UI so that the permissions are proper.
 
-#### 6. Set up Google Sheets integration
+#### 6. Configure markets
 
-- Create a Google Service Account and download credentials to the main directory
-- Copy the [sample Google Sheet](https://docs.google.com/spreadsheets/d/1Kt6yGY7CZpB75cLJJAdWo7LSp9Oz7pjqfuVWwgtn7Ns/edit?gid=1884499063#gid=1884499063)
-- Add your Google service account to the sheet with edit permissions
-- Update `SPREADSHEET_URL` in your `.env` file
+Edit the JSON config files in the `config/` directory:
+- `config/markets.json` - Add markets you want to trade
+- `config/params.json` - Configure trading parameters (hyperparameters)
 
-#### 7. Update market data
+#### 7. Update market data (optional)
 
 Run the market data updater to fetch all available markets:
 
 ```bash
-uv run python update_markets.py
+python update_markets.py
 ```
 
-This should run continuously in the background (preferably on a different IP than your trading bot).
-
-- Add markets you want to trade to the "Selected Markets" sheet
-- Select markets from the "Volatility Markets" sheet
-- Configure parameters in the "Hyperparameters" sheet (default parameters that worked well in November are included)
+This fetches market data and saves to `config/all_markets.json` and `config/volatility_markets.json`.
 
 #### 8. Start the market making bot
 
 ```bash
-uv run python main.py
+python main.py
 ```
 
 ## Configuration
 
-The bot is configured via a Google Spreadsheet with several worksheets:
+The bot is configured via JSON files in the `config/` directory:
 
-- **Selected Markets**: Markets you want to trade
-- **All Markets**: Database of all markets on Polymarket
-- **Hyperparameters**: Configuration parameters for the trading logic
+- **markets.json**: Markets you want to trade (selected markets)
+- **params.json**: Trading parameters/hyperparameters (default, high, mid, etc.)
+- **all_markets.json**: All markets from Polymarket (auto-updated by update_markets.py)
+- **volatility_markets.json**: Low volatility markets (auto-updated)
+- **full_markets.json**: Full market data (auto-updated)
+- **account_summary.json**: Your orders/positions/earnings (auto-updated by update_stats.py)
 
 
 ## Poly Merger
